@@ -1,0 +1,26 @@
+name: deploy to heroku
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  client-set-up-and-testing:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: login to heroku container
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_KEY }}
+        run: heroku container:login
+
+      - name: build and push
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_KEY }}
+        run: heroku container:push -a guess-who-salt-game-socket web
+
+      - name: build and release
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_KEY }}
+        run: heroku container:release -a guess-who-salt-game-socket web
