@@ -19,7 +19,6 @@ io.on('connection', (socket) => {
   });
 
   socket.on('update-log', async (data) => {
-    chatlog.push(data);
     io.sockets.emit('return-log');
   });
 });
