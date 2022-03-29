@@ -1,8 +1,10 @@
 const express = require('express');
 const cors = require('cors');
+const { v4: uuidv4 } = require('uuid');
 const http = require('http');
 const app = express();
 const server = http.createServer(app);
+const util = require('./util');
 const io = require('socket.io')(server, {
   cors: {
     origin: "*",
@@ -11,11 +13,25 @@ const io = require('socket.io')(server, {
 });
 app.use(cors());
 
+
+const waitingList = [];
+
 io.on('connection', (socket) => {
   console.log('connected');
 
-  socket.on('get-log', async () => {
-    socket.emit('return-log');
+  socket.on('add-to-waiting', async () => {
+    waitingList.push(socket);
+    if(waitingList.length >= 2) {
+      const person1 = waitingList[0];
+      const person2 = waitingList[1];
+      const roomId = uuidv4();
+      const people = util.randomSalties();
+      person1.join(roomId);
+      person2.join(roomId);
+      io.to(roomId).emit('room-alert', roomId, people);
+      waitingList.shift();
+      waitingList.shift();
+    }
   });
 
   socket.on('update-log', async (data) => {
