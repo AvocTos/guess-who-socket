@@ -18,12 +18,12 @@ const salties = [
     'Tianbiao.jpeg'
   ];
   
-const fifteenRandomNumbers = () => {
+const generateRandomNumbers = (maxNumber, amount) => {
   const generateRandomNumber = (min, max) => Math.floor(Math.random() * (max - min) + min);
-  const max = salties.length;
+  const max = maxNumber;
   const min = 0;
   let result = [];
-  while(result.length < 3) {
+  while(result.length < amount) {
       const randomNum = generateRandomNumber(min, max);
       if(!result.find(num => num === randomNum)){
           result.push(randomNum);
@@ -34,7 +34,7 @@ const fifteenRandomNumbers = () => {
 
 const randomSalties = () => {
     const people = [];
-    const randoms = fifteenRandomNumbers();
+    const randoms = generateRandomNumbers(salties.length, 3);
     randoms.forEach((number, index) => {
         const obj = {
             name: salties[number].split('.')[0],
@@ -47,4 +47,12 @@ const randomSalties = () => {
     return people;
 }
 
+const selectChosen = (people) => {
+    const randoms = generateRandomNumbers(people.length, 2);
+    const chosen1 = people[randoms[0]];
+    const chosen2 = people[randoms[1]];
+    return [chosen1, chosen2];
+}
+
 module.exports.randomSalties = randomSalties;
+module.exports.selectChosen = selectChosen;

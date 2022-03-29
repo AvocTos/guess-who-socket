@@ -24,14 +24,20 @@ io.on('connection', (socket) => {
     if(waitingList.length >= 2) {
       const person1 = waitingList[0];
       const person2 = waitingList[1];
-      const roomId = uuidv4();
       const people = util.randomSalties();
+      const chosens = util.selectChosen(people);
+      const roomId = uuidv4();
       person1.join(roomId);
+      person1.emit('chosen', chosens[0], chosens[1]);
+      person2.emit('chosen', chosens[1], chosens[0]);
       person2.join(roomId);
       io.to(roomId).emit('room-alert', roomId, people);
       waitingList.shift();
       waitingList.shift();
     }
+    socket.on('win', (data, roomId) => {
+      io.to(roomId).emit('return-win', data)
+    })
   });
 
   socket.on('update-log', async (data) => {
