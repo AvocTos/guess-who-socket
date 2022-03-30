@@ -30,8 +30,8 @@ io.on('connection', (socket) => {
       const chosens = util.selectChosen(people);
       const roomId = uuidv4();
       person1.join(roomId);
-      person1.emit('chosen', chosens[0], chosens[1]);
-      person2.emit('chosen', chosens[1], chosens[0]);
+      person1.emit('chosen', chosens[0], chosens[1], 'active');
+      person2.emit('chosen', chosens[1], chosens[0], 'inactive');
       person2.join(roomId);
       io.to(roomId).emit('room-alert', roomId, people);
       waitingList.shift();
@@ -51,10 +51,9 @@ io.on('connection', (socket) => {
       waitingList = [...newArr];
       console.log(waitingList, 'added new arr to waitinglist');
     })
-  });
-
-  socket.on('update-log', async (data) => {
-    io.sockets.emit('return-log');
+    socket.on('change-turn', (roomId) => {
+      io.to(roomId).emit('return-change-turn', socket.id)
+    })
   });
 });
 
