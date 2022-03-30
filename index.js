@@ -54,6 +54,12 @@ io.on('connection', (socket) => {
     socket.on('change-turn', (roomId) => {
       io.to(roomId).emit('return-change-turn', socket.id)
     })
+    socket.on('send-message', (roomId, userInput) => {
+      io.to(roomId).emit('return-send-message', userInput, socket.id)
+    })
+    socket.on('question-answer', (message, answer, roomId) => {
+      io.to(roomId).emit('return-question-answer', message, answer)
+    })
   });
 });
 
