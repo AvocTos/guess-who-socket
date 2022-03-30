@@ -14,13 +14,15 @@ const io = require('socket.io')(server, {
 app.use(cors());
 
 
-const waitingList = [];
+let waitingList = [];
 
 io.on('connection', (socket) => {
   console.log('connected');
 
   socket.on('add-to-waiting', async () => {
-    waitingList.push(socket);
+    if(!waitingList.includes(socket)){
+      waitingList.push(socket);
+    }
     if(waitingList.length >= 2) {
       const person1 = waitingList[0];
       const person2 = waitingList[1];
@@ -35,8 +37,19 @@ io.on('connection', (socket) => {
       waitingList.shift();
       waitingList.shift();
     }
-    socket.on('win', (data, roomId) => {
-      io.to(roomId).emit('return-win', data)
+    socket.on('win', (roomId, socketId) => {
+      io.to(roomId).emit('return-win', socketId)
+    })
+    socket.on('leave-room', (roomId) => {
+      socket.leave(roomId);
+    })
+    socket.on('leave-waiting', () => {
+      console.log(socket)
+      console.log(waitingList, 'before waitinglist');
+      const newArr = waitingList.filter(player => player !== socket);
+      console.log(newArr, 'new array');
+      waitingList = [...newArr];
+      console.log(waitingList, 'added new arr to waitinglist');
     })
   });
 
