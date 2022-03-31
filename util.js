@@ -34,7 +34,7 @@ const generateRandomNumbers = (maxNumber, amount) => {
 
 const randomSalties = () => {
     const people = [];
-    const randoms = generateRandomNumbers(salties.length, 3);
+    const randoms = generateRandomNumbers(salties.length, 15);
     randoms.forEach((number, index) => {
         const obj = {
             name: salties[number].split('.')[0],
