@@ -17,9 +17,10 @@ app.use(cors());
 let waitingList = [];
 
 io.on('connection', (socket) => {
-  console.log('connected');
+  console.log('connected', socket.id);
 
   socket.on('add-to-waiting', async () => {
+    console.log('SERVER: add-to-waiting')
     if(!waitingList.includes(socket)){
       waitingList.push(socket);
     }
@@ -34,14 +35,19 @@ io.on('connection', (socket) => {
       person2.emit('chosen', chosens[1], chosens[0], 'inactive');
       person2.join(roomId);
       io.to(roomId).emit('room-alert', roomId, people);
+      // remove exact id instead of shift
       waitingList.shift();
       waitingList.shift();
     }
     socket.on('win', (roomId, socketId) => {
-      io.to(roomId).emit('return-win', socketId)
+      io.to(roomId).emit('return-win', socketId, roomId)
     })
     socket.on('leave-room', (roomId) => {
+      console.log(socket.id, 'leave room', roomId)
       socket.leave(roomId);
+      const clients = io.sockets.adapter.rooms.get(roomId);
+      console.log(clients);
+      // delete room
     })
     socket.on('leave-waiting', () => {
       console.log(socket)
@@ -55,6 +61,8 @@ io.on('connection', (socket) => {
       io.to(roomId).emit('return-change-turn', socket.id)
     })
     socket.on('send-message', (roomId, userInput) => {
+      const clients = io.sockets.adapter.rooms.get(roomId);
+      console.log('SERVER: send-message', clients, socket.id);
       io.to(roomId).emit('return-send-message', userInput, socket.id)
     })
     socket.on('question-answer', (message, answer, roomId) => {
