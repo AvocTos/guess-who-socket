@@ -57,8 +57,8 @@ io.on('connection', (socket) => {
       waitingList = [...newArr];
       console.log(waitingList, 'added new arr to waitinglist');
     })
-    socket.on('change-turn', (roomId) => {
-      io.to(roomId).emit('return-change-turn', socket.id)
+    socket.on('change-turn', (roomId, name) => {
+      io.to(roomId).emit('return-change-turn', socket.id, name)
     })
     socket.on('send-message', (roomId, userInput) => {
       const clients = io.sockets.adapter.rooms.get(roomId);
@@ -67,6 +67,9 @@ io.on('connection', (socket) => {
     })
     socket.on('question-answer', (message, answer, roomId) => {
       io.to(roomId).emit('return-question-answer', message, answer)
+    })
+    socket.on('print-question', (roomId, question) => {
+      io.to(roomId).emit('return-print-question', question)
     })
   });
 });
