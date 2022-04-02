@@ -20,7 +20,7 @@ io.on('connection', (socket) => {
   console.log('connected', socket.id);
 
   socket.on('add-to-waiting', async () => {
-    console.log('SERVER: add-to-waiting')
+    console.log('SERVER: add-to-waiting', socket.id)
     if(!waitingList.includes(socket)){
       waitingList.push(socket);
     }
@@ -47,32 +47,32 @@ io.on('connection', (socket) => {
       io.to(roomId).emit('return-win', socketId, roomId)
     })
     socket.on('leave-room', (roomId) => {
-      console.log(socket.id, 'leave room', roomId)
+      console.log('SERVER: leave-room', socket.id, roomId)
       socket.leave(roomId);
       const clients = io.sockets.adapter.rooms.get(roomId);
       console.log(clients);
       // delete room
     })
     socket.on('leave-waiting', () => {
-      console.log(socket)
-      console.log(waitingList, 'before waitinglist');
+      console.log('SERVER: leave-waiting', socket.id);
       const newArr = waitingList.filter(player => player !== socket);
-      console.log(newArr, 'new array');
       waitingList = [...newArr];
-      console.log(waitingList, 'added new arr to waitinglist');
     })
     socket.on('change-turn', (roomId, name) => {
+      console.log('SERVER: change-turn', socket.id);
       io.to(roomId).emit('return-change-turn', socket.id, name)
     })
     socket.on('send-message', (roomId, userInput) => {
       const clients = io.sockets.adapter.rooms.get(roomId);
-      console.log('SERVER: send-message', clients, socket.id);
+      console.log('SERVER: send-message', socket.id, clients);
       io.to(roomId).emit('return-send-message', userInput, socket.id)
     })
     socket.on('question-answer', (message, answer, roomId) => {
+      console.log('SERVER: question-answer', socket.id);
       io.to(roomId).emit('return-question-answer', message, answer)
     })
     socket.on('print-question', (roomId, question) => {
+      console.log('SERVER: print-question', socket.id);
       io.to(roomId).emit('return-print-question', question)
     })
   });
