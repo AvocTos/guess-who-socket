@@ -4,6 +4,7 @@ const { v4: uuidv4 } = require('uuid');
 const http = require('http');
 const app = express();
 const server = http.createServer(app);
+
 const util = require('./util');
 const io = require('socket.io')(server, {
   cors: {
@@ -12,7 +13,6 @@ const io = require('socket.io')(server, {
   }
 });
 app.use(cors());
-// hi
 
 let waitingList = [];
 
@@ -24,20 +24,24 @@ io.on('connection', (socket) => {
     if(!waitingList.includes(socket)){
       waitingList.push(socket);
     }
+
     if(waitingList.length >= 2) {
       const person1 = waitingList[0];
       const person2 = waitingList[1];
       const people = util.randomSalties();
       const chosens = util.selectChosen(people);
       const roomId = uuidv4();
-      person1.join(roomId);
       person1.emit('chosen', chosens[0], chosens[1], 'active');
       person2.emit('chosen', chosens[1], chosens[0], 'inactive');
+      person1.join(roomId);
       person2.join(roomId);
       io.to(roomId).emit('room-alert', roomId, people);
-      // remove exact id instead of shift
-      waitingList.shift();
-      waitingList.shift();
+      const waitingListLargestIndex = waitingList.length - 1;
+      for( var i = waitingListLargestIndex; i >= 0; i--){
+        if ( waitingList[i].id === person1.id || waitingList[i].id === person2.id ) { 
+          waitingList.splice(i, 1); 
+        }
+      }
     }
     socket.on('win', (roomId, socketId) => {
       io.to(roomId).emit('return-win', socketId, roomId)
