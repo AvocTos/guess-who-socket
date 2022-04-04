@@ -15,14 +15,16 @@ app.use(cors());
 
 
 let waitingList = [];
+let playerList = [];
 
 io.on('connection', (socket) => {
   console.log('connected', socket.id);
 
-  socket.on('add-to-waiting', async () => {
-    console.log('SERVER: add-to-waiting', socket.id)
+  socket.on('add-to-waiting', async (playerName) => {
+    console.log('SERVER: add-to-waiting', socket.id, playerName)
     if(!waitingList.includes(socket)){
       waitingList.push(socket);
+      playerList.push(playerName);
     }
     if(waitingList.length >= 2) {
       const person1 = waitingList[0];
@@ -30,13 +32,15 @@ io.on('connection', (socket) => {
       const people = util.randomSalties();
       const chosens = util.selectChosen(people);
       const roomId = uuidv4();
+      person1.emit('chosen', chosens[0], chosens[1], 'active', { yourself: playerList[0], opponent: playerList[1] });
+      person2.emit('chosen', chosens[1], chosens[0], 'inactive', { yourself: playerList[1], opponent: playerList[0] });
       person1.join(roomId);
-      person1.emit('chosen', chosens[0], chosens[1], 'active');
-      person2.emit('chosen', chosens[1], chosens[0], 'inactive');
       person2.join(roomId);
       io.to(roomId).emit('room-alert', roomId, people);
       waitingList.shift();
       waitingList.shift();
+      playerList.shift();
+      playerList.shift();
     }
     socket.on('win', (roomId, socketId) => {
       io.to(roomId).emit('return-win', socketId, roomId)
