@@ -16,6 +16,10 @@ app.use(cors());
 
 let waitingList = [];
 let playerList = [];
+let person1;
+let person2;
+let playerName1;
+let playerName2;
 
 io.on('connection', (socket) => {
   console.log('connected', socket.id);
@@ -27,20 +31,22 @@ io.on('connection', (socket) => {
       playerList.push(playerName);
     }
     if(waitingList.length >= 2) {
-      const person1 = waitingList[0];
-      const person2 = waitingList[1];
+      person1 = waitingList[0];
+      person2 = waitingList[1];
+      playerName1 = playerList[0];
+      playerName2 = playerList[1];
       const people = util.randomSalties();
       const chosens = util.selectChosen(people);
       const roomId = uuidv4();
-      person1.emit('chosen', chosens[0], chosens[1], 'active', { yourself: playerList[0], opponent: playerList[1] });
-      person2.emit('chosen', chosens[1], chosens[0], 'inactive', { yourself: playerList[1], opponent: playerList[0] });
+      person1.emit('chosen', chosens[0], chosens[1], 'active', { yourself: playerName1, opponent: playerName2 });
+      person2.emit('chosen', chosens[1], chosens[0], 'inactive', { yourself: playerName2, opponent: playerName1 });
       person1.join(roomId);
       person2.join(roomId);
       io.to(roomId).emit('room-alert', roomId, people);
-      waitingList.shift();
-      waitingList.shift();
-      playerList.shift();
-      playerList.shift();
+      waitingList = waitingList.filter(person => person !== person1);
+      waitingList = waitingList.filter(person => person !== person2);
+      playerList = playerList.filter(person => person !== playerName1);
+      playerList = playerList.filter(person => person !== playerName2);
     }
     socket.on('win', (roomId, socketId) => {
       io.to(roomId).emit('return-win', socketId, roomId)
@@ -70,6 +76,18 @@ io.on('connection', (socket) => {
     socket.on('print-question', (roomId, question) => {
       io.to(roomId).emit('return-print-question', question)
     })
+    socket.on('disconnecting', () => {
+      const index = waitingList.indexOf(socket);
+      if (index !== -1) {
+        waitingList.splice(index, 1);
+        playerList.splice(index, 1);
+      }
+      const itterator = socket.rooms.values();
+      const socketId = itterator.next().value;
+      const roomId = itterator.next().value;
+      io.to(roomId).emit('disconnect-alert', roomId);
+    // how to get info from set
+    });
   });
 });
 
