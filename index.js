@@ -14,7 +14,7 @@ const io = require('socket.io')(server, {
 app.use(cors());
 
 let waitingList = [];
-let playerList = [];
+// let playerList = [];
 let onlineList = [];
 let person1;
 let person2;
@@ -27,14 +27,14 @@ io.on('connection', (socket) => {
   socket.on('add-to-waiting', async (playerName) => {
     console.log('SERVER: add-to-waiting', socket.id, playerName);
     if(!waitingList.includes(socket)){
-      waitingList.push(socket);
-      playerList.push(playerName);
+      waitingList.push({socket: socket, playerName: playerName});
+      // playerList.push(playerName);
     }
     if(waitingList.length >= 2) {
-      person1 = waitingList[0];
-      person2 = waitingList[1];
-      playerName1 = playerList[0];
-      playerName2 = playerList[1];
+      person1 = waitingList[0].socket;
+      person2 = waitingList[1].socket;
+      playerName1 = waitingList[0].playerName;
+      playerName2 = waitingList[1].playerName;
       const people = util.randomSalties();
       const chosens = util.selectChosen(people);
       const roomId = uuidv4();
@@ -43,10 +43,10 @@ io.on('connection', (socket) => {
       person1.join(roomId);
       person2.join(roomId);
       io.to(roomId).emit('room-alert', roomId, people);
-      waitingList = waitingList.filter(person => person !== person1);
-      waitingList = waitingList.filter(person => person !== person2);
-      playerList = playerList.filter(person => person !== playerName1);
-      playerList = playerList.filter(person => person !== playerName2);
+      waitingList = waitingList.filter(person => person.socket !== person1);
+      waitingList = waitingList.filter(person => person.socket !== person2);
+      // playerList = playerList.filter(person => person !== playerName1);
+      // playerList = playerList.filter(person => person !== playerName2);
     }
     socket.on('win', (roomId, socketId) => {
       io.to(roomId).emit('return-win', socketId, roomId)
@@ -59,7 +59,7 @@ io.on('connection', (socket) => {
                            // will create a new one anyway.
     })
     socket.on('leave-waiting', () => {
-      const newArr = waitingList.filter(player => player !== socket);
+      const newArr = waitingList.filter(player => player.socket !== socket);
       waitingList = [...newArr];
       console.log(waitingList, 'added new arr to waitinglist');
     })
@@ -83,10 +83,14 @@ io.on('connection', (socket) => {
     socket.on('disconnecting', () => {
       onlineList = onlineList.filter(object => object.id !== socket.id);
       console.log('removed from online', onlineList)
-      const index = waitingList.indexOf(socket);
+      // const index = waitingList.indexOf(socket);
+      const index = waitingList.findIndex(obj => {
+        return obj.socket === socket;
+      });
+
       if (index !== -1) {
-        waitingList = waitingList.splice(index, 1);
-        playerList = playerList.splice(index, 1);
+        waitingList.splice(index, 1);
+        // playerList = [...playerList].splice(index, 1);
       }
       const itterator = socket.rooms.values();
       const socketId = itterator.next().value;
