@@ -13,7 +13,6 @@ const io = require('socket.io')(server, {
 });
 app.use(cors());
 
-
 let waitingList = [];
 let playerList = [];
 let onlineList = [];
@@ -86,8 +85,8 @@ io.on('connection', (socket) => {
       console.log('removed from online', onlineList)
       const index = waitingList.indexOf(socket);
       if (index !== -1) {
-        waitingList.splice(index, 1);
-        playerList.splice(index, 1);
+        waitingList = waitingList.splice(index, 1);
+        playerList = playerList.splice(index, 1);
       }
       const itterator = socket.rooms.values();
       const socketId = itterator.next().value;
