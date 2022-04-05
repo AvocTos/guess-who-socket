@@ -16,6 +16,7 @@ app.use(cors());
 
 let waitingList = [];
 let playerList = [];
+let onlineList = [];
 let person1;
 let person2;
 let playerName1;
@@ -25,7 +26,7 @@ io.on('connection', (socket) => {
   console.log('connected', socket.id);
 
   socket.on('add-to-waiting', async (playerName) => {
-    console.log('SERVER: add-to-waiting', socket.id, playerName)
+    console.log('SERVER: add-to-waiting', socket.id, playerName);
     if(!waitingList.includes(socket)){
       waitingList.push(socket);
       playerList.push(playerName);
@@ -76,7 +77,13 @@ io.on('connection', (socket) => {
     socket.on('print-question', (roomId, question) => {
       io.to(roomId).emit('return-print-question', question)
     })
+    socket.on('add-online-list', (object) => {
+      onlineList.push(object);
+      console.log('added to online', onlineList);
+    })
     socket.on('disconnecting', () => {
+      onlineList = onlineList.filter(object => object.id !== socket.id);
+      console.log('removed from online', onlineList)
       const index = waitingList.indexOf(socket);
       if (index !== -1) {
         waitingList.splice(index, 1);
@@ -86,7 +93,6 @@ io.on('connection', (socket) => {
       const socketId = itterator.next().value;
       const roomId = itterator.next().value;
       io.to(roomId).emit('disconnect-alert', roomId);
-    // how to get info from set
     });
   });
 });
