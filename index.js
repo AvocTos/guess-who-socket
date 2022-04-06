@@ -30,6 +30,8 @@ io.on("connection", (socket) => {
       person2 = waitingList[1].socket;
       playerName1 = waitingList[0].playerName;
       playerName2 = waitingList[1].playerName;
+      waitingList = waitingList.filter((person) => person.socket !== person1);
+      waitingList = waitingList.filter((person) => person.socket !== person2);
       const people = util.randomSalties();
       const chosens = util.selectChosen(people);
       const roomId = uuidv4();
@@ -44,8 +46,6 @@ io.on("connection", (socket) => {
       person1.join(roomId);
       person2.join(roomId);
       io.to(roomId).emit("room-alert", roomId, people);
-      waitingList = waitingList.filter((person) => person.socket !== person1);
-      waitingList = waitingList.filter((person) => person.socket !== person2);
     }
     socket.on("win", (roomId, socketId) => {
       io.to(roomId).emit("return-win", socketId, roomId);
